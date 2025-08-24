@@ -1,6 +1,11 @@
 import os
 import json
 import base64
+import http.server
+import socketserver
+import urllib.request
+import urllib.parse
+import urllib.error
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 def get_vmess_config():
@@ -161,8 +166,9 @@ HTML_TEMPLATE = """
 </html>
 """
 
-class VMessRequestHandler(BaseHTTPRequestHandler):
+class ProxyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        # Handle requests for the VMess link
         if self.path == '/' or self.path == '/config':
             # For the root path, we'll try to get the actual app URL from the request
             # If that's not available, we'll fall back to the environment variable
@@ -202,17 +208,87 @@ class VMessRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(vmess_link.encode('utf-8'))
         else:
-            # Serve a 404 page for other paths
-            self.send_response(404)
+            # Proxy all other requests to V2Ray
+            self.proxy_request()
+    
+    def do_POST(self):
+        # Proxy POST requests to V2Ray
+        self.proxy_request()
+    
+    def do_PUT(self):
+        # Proxy PUT requests to V2Ray
+        self.proxy_request()
+    
+    def do_DELETE(self):
+        # Proxy DELETE requests to V2Ray
+        self.proxy_request()
+    
+    def do_HEAD(self):
+        # Proxy HEAD requests to V2Ray
+        self.proxy_request()
+    
+    def do_OPTIONS(self):
+        # Proxy OPTIONS requests to V2Ray
+        self.proxy_request()
+    
+    def do_PATCH(self):
+        # Proxy PATCH requests to V2Ray
+        self.proxy_request()
+    
+    def proxy_request(self):
+        # Proxy the request to V2Ray
+        try:
+            # Construct the URL for V2Ray
+            v2ray_url = f"http://127.0.0.1:8080{self.path}"
+            
+            # Create a request to V2Ray
+            if self.command == 'GET':
+                req = urllib.request.Request(v2ray_url)
+            else:
+                # For POST, PUT, etc., we need to read the request body
+                content_length = int(self.headers.get('Content-Length', 0))
+                post_data = self.rfile.read(content_length) if content_length > 0 else None
+                req = urllib.request.Request(v2ray_url, data=post_data, method=self.command)
+            
+            # Copy headers from the original request
+            for header in ['User-Agent', 'Accept', 'Accept-Language', 'Accept-Encoding', 'Connection', 'Upgrade', 'Content-Type', 'Content-Length']:
+                if header in self.headers:
+                    req.add_header(header, self.headers[header])
+            
+            # Send the request to V2Ray
+            with urllib.request.urlopen(req) as response:
+                # Send the response back to the client
+                self.send_response(response.getcode())
+                # Copy headers from V2Ray's response
+                for header, value in response.getheaders():
+                    if header.lower() != 'transfer-encoding':  # Skip transfer-encoding header
+                        self.send_header(header, value)
+                self.end_headers()
+                # Copy the response body
+                self.wfile.write(response.read())
+        except urllib.error.HTTPError as e:
+            # Handle HTTP errors from V2Ray
+            self.send_response(e.code)
+            # Copy headers from the error response
+            for header, value in e.headers.items():
+                if header.lower() != 'transfer-encoding':
+                    self.send_header(header, value)
             self.end_headers()
-            self.wfile.write(b'Page not found')
+            # Copy the error response body
+            self.wfile.write(e.read())
+        except Exception as e:
+            # Handle other errors
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(f"Proxy error: {str(e)}".encode('utf-8'))
 
 def run_server(port):
     server_address = ('', port)
-    httpd = HTTPServer(server_address, VMessRequestHandler)
-    print(f"VMess link server running on port {port}")
+    httpd = HTTPServer(server_address, ProxyHandler)
+    print(f"VMess link server and proxy running on port {port}")
     httpd.serve_forever()
 
 if __name__ == '__main__':
-    # Run the server on port 8000
-    run_server(8000)
+    # Get the port from the environment variable, default to 8080 if not set
+    port = int(os.environ.get('PORT', 8080))
+    run_server(port)

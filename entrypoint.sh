@@ -23,24 +23,6 @@ V2RAY_PID=$!
 # Wait a moment for V2Ray to start
 sleep 2
 
-# Start the VMess link server in the background on port 8000
+# Start the VMess link server (which will also act as a proxy)
 echo "Starting VMess link server..."
-python3 /app/vmess_link_server.py &
-SERVER_PID=$!
-
-# Wait a moment for the server to start
-sleep 2
-
-# Replace the placeholder in the Nginx configuration with the actual port
-# If PORT is not set, default to 8080
-NGINX_PORT=${PORT:-8080}
-echo "Configuring Nginx to listen on port $NGINX_PORT"
-sed -i "s/{{PORT}}/$NGINX_PORT/g" /etc/nginx/nginx.conf
-
-# Verify the Nginx config
-echo "Nginx config after replacement:"
-cat /etc/nginx/nginx.conf
-
-# Start Nginx in the foreground
-echo "Starting Nginx..."
-nginx -g "daemon off;"
+python3 /app/vmess_link_server.py
