@@ -1,5 +1,5 @@
 # Use the official V2Ray image
-FROM v2fly/v2fly-core:v5.17.1
+FROM v2fly/v2fly-core:latest
 
 # Copy the V2Ray configuration file
 COPY v2ray.config.json /etc/v2ray/config.json
