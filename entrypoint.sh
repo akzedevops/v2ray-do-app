@@ -2,6 +2,11 @@
 
 echo "Starting entrypoint script..."
 
+# Debug: Print environment variables
+echo "PORT environment variable: $PORT"
+echo "All environment variables:"
+env
+
 # Generate the V2Ray configuration from the template
 echo "Generating V2Ray configuration..."
 python3 /app/generate_config.py /etc/v2ray/config.template.json /etc/v2ray/config.json
@@ -33,7 +38,7 @@ echo "Configuring Nginx to listen on port $NGINX_PORT"
 sed -i "s/{{PORT}}/$NGINX_PORT/g" /etc/nginx/nginx.conf
 
 # Verify the Nginx config
-echo "Nginx config:"
+echo "Nginx config after replacement:"
 cat /etc/nginx/nginx.conf
 
 # Start Nginx in the foreground
