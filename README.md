@@ -7,8 +7,8 @@ This project provides a template for deploying a V2Ray server using the DigitalO
 - `Dockerfile`: Defines the container image using the official V2Ray image.
 - `v2ray.config.template.json`: A template for the V2Ray configuration file.
 - `generate_config.py`: A Python script to generate the V2Ray configuration from the template using environment variables.
-- `vmess_link_server.py`: A Python script that serves a web page with the VMess link and a copy button.
-- `entrypoint.sh`: A shell script that generates the V2Ray configuration and starts both the V2Ray server and the VMess link server.
+- `vmess_link_generator.py`: A Python script to generate the VMess link.
+- `entrypoint.sh`: A shell script that generates the V2Ray configuration and starts the V2Ray server.
 
 ## Environment Variables
 
@@ -16,7 +16,6 @@ The following environment variables can be set to configure the V2Ray server:
 
 - `VMESS_UUID`: The UUID for the VMess inbound. Default: `34c0808e-ca5e-40c9-8e5d-6bacd84bc564`.
 - `WS_PATH`: The WebSocket path. Default: `/ray`.
-- `APP_URL`: The URL of the app (used for generating the VMess link). This is usually determined dynamically from the request, but can be overridden with this variable.
 
 ## Deployment Instructions
 
@@ -55,15 +54,27 @@ The following environment variables can be set to configure the V2Ray server:
 
 ### Accessing the VMess Link
 
-Once deployed, you can access the VMess link by visiting your app's URL in a web browser. The page will display the VMess link and provide a button to copy it to your clipboard.
+After deployment, the app will print the VMess link to the console logs during startup. You can find this link in the app's logs in the DigitalOcean Control Panel.
 
-You can also access the VMess link directly as plain text by visiting `https://your-app-url/vmess`.
+Alternatively, you can generate the VMess link locally by running the `vmess_link_generator.py` script with the correct environment variables:
+
+```bash
+# Set the environment variables
+export APP_URL=your-app-name.ondigitalocean.app
+export VMESS_UUID=your-uuid
+export WS_PATH=/ray
+
+# Run the script
+python vmess_link_generator.py
+```
+
+Replace `your-app-name.ondigitalocean.app` with the actual URL of your deployed app.
 
 ### Client Configuration
 
 To connect to your V2Ray server, you'll need a client that supports VMess.
 
-- **Address**: The URL of your deployed DigitalOcean app (e.g., `https://your-app-name.ondigitalocean.app`).
+- **Address**: The URL of your deployed DigitalOcean app (e.g., `your-app-name.ondigitalocean.app`).
 - **Port**: 443 (if using HTTPS, which is typical for App Platform apps).
 - **ID**: The UUID you used (either the default or the one set via `VMESS_UUID`).
 - **AlterId**: 0 (as configured).

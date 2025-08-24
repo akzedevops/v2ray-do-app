@@ -37,14 +37,9 @@ def generate_vmess_link(config):
     return f"vmess://{encoded_str}"
 
 if __name__ == "__main__":
-    # Get the app URL from the PORT environment variable
-    # The DigitalOcean App Platform sets the PORT environment variable
-    # For local testing, we can use a placeholder
-    port = os.environ.get('PORT', '8080')
-    
-    # For the app URL, we'll try to get it from the APP_URL environment variable
-    # If that's not set, we'll use a placeholder
-    app_url = os.environ.get('APP_URL', f'your-app-url-placeholder.ondigitalocean.app')
+    # Get the app URL from the APP_URL environment variable
+    # For local testing or if APP_URL is not set, we'll use a placeholder
+    app_url = os.environ.get('APP_URL', 'your-app-url-placeholder.ondigitalocean.app')
     
     # Update the config with the app URL
     config = get_vmess_config()
@@ -55,6 +50,12 @@ if __name__ == "__main__":
     vmess_link = generate_vmess_link(config)
     print("VMess link for your V2Ray client:")
     print(vmess_link)
+    print("")
+    print("IMPORTANT: If you see 'your-app-url-placeholder.ondigitalocean.app' in the link above,")
+    print("you need to set the APP_URL environment variable to your actual app URL.")
+    print("In the DigitalOcean App Platform, this is automatically set.")
+    print("For local testing, you can set it like this:")
+    print("  export APP_URL=your-app-name.ondigitalocean.app")
     print("")
     print("To use this configuration in a V2Ray client:")
     print("- Copy the entire VMess link above")
