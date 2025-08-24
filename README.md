@@ -5,10 +5,18 @@ This project provides a template for deploying a V2Ray server using the DigitalO
 ## Components
 
 - `Dockerfile`: Defines the container image using the official V2Ray image.
-- `v2ray.config.json`: The V2Ray configuration file.
-  - Listens on the port defined by the `PORT` environment variable (set by DigitalOcean).
-  - Uses VMess protocol with WebSocket transport on path `/ray`.
-  - The user ID (UUID) is hardcoded in the config. You should change this for security.
+- `v2ray.config.template.json`: A template for the V2Ray configuration file.
+- `generate_config.py`: A Python script to generate the V2Ray configuration from the template using environment variables.
+- `vmess_link_server.py`: A Python script that serves a web page with the VMess link and a copy button.
+- `entrypoint.sh`: A shell script that generates the V2Ray configuration and starts both the V2Ray server and the VMess link server.
+
+## Environment Variables
+
+The following environment variables can be set to configure the V2Ray server:
+
+- `VMESS_UUID`: The UUID for the VMess inbound. Default: `34c0808e-ca5e-40c9-8e5d-6bacd84bc564`.
+- `WS_PATH`: The WebSocket path. Default: `/ray`.
+- `APP_URL`: The URL of the app (used for generating the VMess link). This is usually determined dynamically from the request, but can be overridden with this variable.
 
 ## Deployment Instructions
 
@@ -20,27 +28,36 @@ This project provides a template for deploying a V2Ray server using the DigitalO
 ### Steps
 
 1. **Fork or Clone this Repository**: If you haven't already, get this code into your own Git repository.
-2. **Update UUID (Recommended for Security)**:
+2. **(Optional) Update UUID**:
    - Generate a new UUID (you can use `python -c "import uuid; print(uuid.uuid4())"`).
-   - Replace the `id` value in `v2ray.config.json` with your new UUID.
+   - You can either set the `VMESS_UUID` environment variable in the DigitalOcean App Platform settings or modify the default value in `generate_config.py`.
 3. **Create an App on DigitalOcean**:
    - Go to the [DigitalOcean Control Panel](https://cloud.digitalocean.com/).
    - Navigate to `Apps` (under the 'Manage' section).
    - Click `Create App`.
 4. **Configure Source**:
    - Choose your Git repository provider and select this repository.
-   - Select the branch you want to deploy (e.g., `main`).
+   - Select the branch you want to deploy (e.g., `main` or `vmess-link-generator`).
 5. **Configure App**:
    - DigitalOcean should automatically detect the `Dockerfile`.
    - Ensure the `Source directory` is set correctly (usually `/` for this project).
    - No specific build command is needed as it's a Dockerfile deployment.
-6. **Set Environment Variables (Not strictly needed for basic setup, but good to know)**:
-   - The `PORT` environment variable is automatically set by DigitalOcean App Platform. Our config uses `{{.PORT}}` to reference it.
+6. **Set Environment Variables (Optional but Recommended)**:
+   - In the DigitalOcean App Platform settings, you can set environment variables.
+   - Set `VMESS_UUID` to your desired UUID.
+   - Set `WS_PATH` if you want to use a different WebSocket path.
+   - The `PORT` environment variable is automatically set by DigitalOcean App Platform.
 7. **Finalize and Deploy**:
    - Review the plan.
    - Choose your region.
    - Decide on the plan (the free tier might suffice for light personal use, but check DigitalOcean's current offerings).
    - Click `Launch App`.
+
+### Accessing the VMess Link
+
+Once deployed, you can access the VMess link by visiting your app's URL in a web browser. The page will display the VMess link and provide a button to copy it to your clipboard.
+
+You can also access the VMess link directly as plain text by visiting `https://your-app-url/vmess`.
 
 ### Client Configuration
 
@@ -48,11 +65,11 @@ To connect to your V2Ray server, you'll need a client that supports VMess.
 
 - **Address**: The URL of your deployed DigitalOcean app (e.g., `https://your-app-name.ondigitalocean.app`).
 - **Port**: 443 (if using HTTPS, which is typical for App Platform apps).
-- **ID**: The UUID you used in `v2ray.config.json`.
+- **ID**: The UUID you used (either the default or the one set via `VMESS_UUID`).
 - **AlterId**: 0 (as configured).
 - **Security**: auto (or aes-128-gcm if your client requires it explicitly).
 - **Network**: ws (WebSocket).
-- **Path**: `/ray`.
+- **Path**: `/ray` (or the value of `WS_PATH` if you changed it).
 - **TLS**: tls (enable).
 
 **Note**: DigitalOcean App Platform typically provides HTTPS endpoints automatically. Make sure your client is configured to use `wss` (WebSocket Secure) if connecting via HTTPS.
