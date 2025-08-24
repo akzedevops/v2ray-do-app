@@ -283,6 +283,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
             self.wfile.write(f"Proxy error: {str(e)}".encode('utf-8'))
 
 def run_server(port):
+    print(f"Attempting to start server on port {port}")
     server_address = ('', port)
     httpd = HTTPServer(server_address, ProxyHandler)
     print(f"VMess link server and proxy running on port {port}")
@@ -291,4 +292,5 @@ def run_server(port):
 if __name__ == '__main__':
     # Get the port from the environment variable, default to 8080 if not set
     port = int(os.environ.get('PORT', 8080))
+    print(f"Starting server with PORT environment variable: {os.environ.get('PORT')}, using port: {port}")
     run_server(port)
