@@ -26,6 +26,16 @@ SERVER_PID=$!
 # Wait a moment for the server to start
 sleep 2
 
+# Replace the placeholder in the Nginx configuration with the actual port
+# If PORT is not set, default to 8080
+NGINX_PORT=${PORT:-8080}
+echo "Configuring Nginx to listen on port $NGINX_PORT"
+sed -i "s/{{PORT}}/$NGINX_PORT/g" /etc/nginx/nginx.conf
+
+# Verify the Nginx config
+echo "Nginx config:"
+cat /etc/nginx/nginx.conf
+
 # Start Nginx in the foreground
 echo "Starting Nginx..."
 nginx -g "daemon off;"
