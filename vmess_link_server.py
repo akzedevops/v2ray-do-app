@@ -163,7 +163,7 @@ HTML_TEMPLATE = """
 
 class VMessRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/':
+        if self.path == '/' or self.path == '/config':
             # For the root path, we'll try to get the actual app URL from the request
             # If that's not available, we'll fall back to the environment variable
             host_header = self.headers.get('Host')
@@ -214,6 +214,5 @@ def run_server(port):
     httpd.serve_forever()
 
 if __name__ == '__main__':
-    # Get the port from the environment variable, default to 8000 if not set
-    port = int(os.environ.get('PORT', 8000))
-    run_server(port)
+    # Run the server on port 8000
+    run_server(8000)
