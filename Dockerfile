@@ -10,11 +10,11 @@ COPY v2ray.config.template.json /etc/v2ray/config.template.json
 # Copy the config generation script
 COPY generate_config.py /app/generate_config.py
 
-# Copy the VMess link server script
-COPY vmess_link_server.py /app/vmess_link_server.py
+# Copy the VMess link generator script
+COPY vmess_link_generator.py /app/vmess_link_generator.py
 
 # Make the scripts executable
-RUN chmod +x /app/generate_config.py /app/vmess_link_server.py
+RUN chmod +x /app/generate_config.py /app/vmess_link_generator.py
 
 # Expose the V2Ray port
 EXPOSE 8080
